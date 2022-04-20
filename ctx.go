@@ -27,13 +27,11 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/spacemonkeygo/spacelog"
+	"log"
 )
 
 var (
 	ssl_ctx_idx = C.X_SSL_CTX_new_index()
-
-	logger = spacelog.GetLogger()
 )
 
 type Ctx struct {
@@ -79,6 +77,7 @@ const (
 	// Make sure to disable SSLv2 and SSLv3 if you use this. SSLv3 is vulnerable
 	// to the "POODLE" attack, and SSLv2 is what, just don't even.
 	AnyVersion SSLVersion = 0x06
+	CNTLS_CLT  SSLVersion = 0x07
 )
 
 // NewCtxWithVersion creates an SSL context that is specific to the provided
@@ -94,6 +93,8 @@ func NewCtxWithVersion(version SSLVersion) (*Ctx, error) {
 		method = C.X_TLSv1_1_method()
 	case TLSv1_2:
 		method = C.X_TLSv1_2_method()
+	case CNTLS_CLT:
+		method = C.X_CNTLS_client_method()
 	case AnyVersion:
 		method = C.X_SSLv23_method()
 	}
@@ -213,6 +214,18 @@ func (c *Ctx) UseCertificate(cert *Certificate) error {
 	return nil
 }
 
+// UseCertificate configures the context to present the given certificate to
+// peers for encryption.
+func (c *Ctx) UseEncCertificate(cert *Certificate) error {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+	c.cert = cert
+	if int(C.SSL_CTX_use_enc_certificate(c.ctx, cert.x)) != 1 {
+		return errorFromErrorQueue()
+	}
+	return nil
+}
+
 // AddChainCertificate adds a certificate to the chain presented in the
 // handshake.
 func (c *Ctx) AddChainCertificate(cert *Certificate) error {
@@ -234,6 +247,18 @@ func (c *Ctx) UsePrivateKey(key PrivateKey) error {
 	defer runtime.UnlockOSThread()
 	c.key = key
 	if int(C.SSL_CTX_use_PrivateKey(c.ctx, key.evpPKey())) != 1 {
+		return errorFromErrorQueue()
+	}
+	return nil
+}
+
+// UsePrivateKey configures the context to use the given private key for SSL
+// handshakes for encryption.
+func (c *Ctx) UseEncPrivateKey(key PrivateKey) error {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+	c.key = key
+	if int(C.SSL_CTX_use_enc_PrivateKey(c.ctx, key.evpPKey())) != 1 {
 		return errorFromErrorQueue()
 	}
 	return nil
@@ -426,7 +451,7 @@ type VerifyCallback func(ok bool, store *CertificateStoreCtx) bool
 func go_ssl_ctx_verify_cb_thunk(p unsafe.Pointer, ok C.int, ctx *C.X509_STORE_CTX) C.int {
 	defer func() {
 		if err := recover(); err != nil {
-			logger.Critf("openssl: verify callback panic'd: %v", err)
+			log.Printf("go_ssl_ctx_verify_cb_thunk %s\n", err)
 			os.Exit(1)
 		}
 	}()

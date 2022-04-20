@@ -471,6 +471,14 @@ const SSL_METHOD *X_TLSv1_2_method() {
 #endif
 }
 
+const SSL_METHOD *X_CNTLS_client_method() {
+#ifndef OPENSSL_NO_CNSM
+	return CNTLS_client_method();
+#else
+	return NULL;
+#endif
+}
+
 int X_SSL_CTX_new_index() {
 	return SSL_CTX_get_ex_new_index(0, NULL, NULL, NULL, NULL);
 }
