@@ -18,9 +18,9 @@ package openssl
 import "C"
 
 import (
+	"log"
 	"os"
 	"unsafe"
-	"log"
 )
 
 const (

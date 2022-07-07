@@ -20,10 +20,10 @@ import "C"
 import (
 	"errors"
 	"io"
+	"log"
 	"reflect"
 	"sync"
 	"unsafe"
-	"log"
 )
 
 const (

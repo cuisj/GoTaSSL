@@ -322,6 +322,18 @@ func (s *CertificateStore) AddCertificate(cert *Certificate) error {
 	return nil
 }
 
+// Set x509 verify flags
+func (s *CertificateStore) SetX509VerifyFlags(flags X509VerifyFlags) error {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
+	if int(C.X509_STORE_set_flags(s.store, C.ulong(flags))) != 1 {
+		return errorFromErrorQueue()
+	}
+
+	return nil
+}
+
 type CertificateStoreCtx struct {
 	ctx     *C.X509_STORE_CTX
 	ssl_ctx *Ctx
@@ -443,6 +455,32 @@ const (
 	VerifyPeer             VerifyOptions = C.SSL_VERIFY_PEER
 	VerifyFailIfNoPeerCert VerifyOptions = C.SSL_VERIFY_FAIL_IF_NO_PEER_CERT
 	VerifyClientOnce       VerifyOptions = C.SSL_VERIFY_CLIENT_ONCE
+)
+
+type X509VerifyFlags uint
+
+const (
+	X509VFlagUseCheckTime       X509VerifyFlags = C.X509_V_FLAG_USE_CHECK_TIME
+	X509VFlagCrlCheck           X509VerifyFlags = C.X509_V_FLAG_CRL_CHECK
+	X509VFlagCrlCheckAll        X509VerifyFlags = C.X509_V_FLAG_CRL_CHECK_ALL
+	X509VFlagIgnoreCritial      X509VerifyFlags = C.X509_V_FLAG_IGNORE_CRITICAL
+	X509VFlagX509Strict         X509VerifyFlags = C.X509_V_FLAG_X509_STRICT
+	X509VFlagAllowProxyCerts    X509VerifyFlags = C.X509_V_FLAG_ALLOW_PROXY_CERTS
+	X509VFlagPolicyCheck        X509VerifyFlags = C.X509_V_FLAG_POLICY_CHECK
+	X509VFlagExplicitPolicy     X509VerifyFlags = C.X509_V_FLAG_EXPLICIT_POLICY
+	X509VFlagInhibitAny         X509VerifyFlags = C.X509_V_FLAG_INHIBIT_ANY
+	X509VFlagInhibitMap         X509VerifyFlags = C.X509_V_FLAG_INHIBIT_MAP
+	X509VFlagNotifyPolicy       X509VerifyFlags = C.X509_V_FLAG_NOTIFY_POLICY
+	X509VFlagExtendedCrlSupport X509VerifyFlags = C.X509_V_FLAG_EXTENDED_CRL_SUPPORT
+	X509VFlagUseDeltas          X509VerifyFlags = C.X509_V_FLAG_USE_DELTAS
+	X509VFlagCheckSsSignature   X509VerifyFlags = C.X509_V_FLAG_CHECK_SS_SIGNATURE
+	X509VFlagTrustedFirst       X509VerifyFlags = C.X509_V_FLAG_TRUSTED_FIRST
+	X509VFlagSuiteb128LosOnly   X509VerifyFlags = C.X509_V_FLAG_SUITEB_128_LOS_ONLY
+	X509VFlagSuiteb192Los       X509VerifyFlags = C.X509_V_FLAG_SUITEB_192_LOS
+	X509VFlagSuiteb128los       X509VerifyFlags = C.X509_V_FLAG_SUITEB_128_LOS
+	X509VFlagPartialChain       X509VerifyFlags = C.X509_V_FLAG_PARTIAL_CHAIN
+	X509VFlagNoAltChains        X509VerifyFlags = C.X509_V_FLAG_NO_ALT_CHAINS
+	X509VFlagNoCheckTime        X509VerifyFlags = C.X509_V_FLAG_NO_CHECK_TIME
 )
 
 type VerifyCallback func(ok bool, store *CertificateStoreCtx) bool
