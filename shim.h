@@ -53,7 +53,7 @@ extern const char * X_SSL_get_cipher_name(const SSL *ssl);
 extern int X_SSL_session_reused(SSL *ssl);
 extern int X_SSL_new_index();
 
-extern const SSL_METHOD *X_SSLv23_method();
+extern const SSL_METHOD *X_TLS_method();
 extern const SSL_METHOD *X_SSLv3_method();
 extern const SSL_METHOD *X_TLSv1_method();
 extern const SSL_METHOD *X_TLSv1_1_method();

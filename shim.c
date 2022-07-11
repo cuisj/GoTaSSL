@@ -439,8 +439,8 @@ int X_SSL_verify_cb(int ok, X509_STORE_CTX* store) {
 	return go_ssl_verify_cb_thunk(p, ok, store);
 }
 
-const SSL_METHOD *X_SSLv23_method() {
-	return SSLv23_method();
+const SSL_METHOD *X_TLS_method() {
+	return TLS_method();
 }
 
 const SSL_METHOD *X_SSLv3_method() {

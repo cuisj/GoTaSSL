@@ -96,7 +96,7 @@ func NewCtxWithVersion(version SSLVersion) (*Ctx, error) {
 	case CNTLS_CLT:
 		method = C.X_CNTLS_client_method()
 	case AnyVersion:
-		method = C.X_SSLv23_method()
+		method = C.X_TLS_method()
 	}
 	if method == nil {
 		return nil, errors.New("unknown ssl/tls version")
